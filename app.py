@@ -276,4 +276,4 @@ app = app
 
 if __name__ == "__main__":
     # 本機執行
-    app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)
+    app.run(debug=True)
