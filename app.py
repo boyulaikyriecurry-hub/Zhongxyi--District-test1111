@@ -106,7 +106,9 @@ INDEX_HTML = """
   <p class="text-muted">資料來源：<code>{{load_path}}</code>（里別負載），<code>{{pv_path}}</code>（中西區 PV）</p>
 </div>
 <div class="container py-4">
-    <img src="./中西區調整後地圖-簡.jpg" alt="" height="1000">
+    <img src="{{ url_for('static', filename='中西區調整後地圖-簡.jpg') }}" 
+         alt="map" 
+         class="img-fluid mb-4">
 </div>
 </body>
 </html>
