@@ -108,6 +108,7 @@ INDEX_HTML = """
 <div class="container py-4">
     <img src="{{ url_for('static', filename='中西區調整後地圖-簡.jpg') }}" 
          alt="map" 
+         height="100"
          class="img-fluid mb-4">
 </div>
 </body>
