@@ -111,6 +111,14 @@ INDEX_HTML = """
          height="1000"
          class="img-fluid mb-4">
 </div>
+<div class="container mb-4"
+     style="
+        padding-top: 40%;
+        background-image: url('{{ url_for('static', filename='螢幕擷取畫面 2025-11-24 154806.jpg') }}');
+        background-size: cover;
+        background-position: center;
+     ">
+</div>
 </body>
 </html>
 """
@@ -194,7 +202,14 @@ VIEW_HTML = """
     </div>
   </div>
 </div>
-
+<div class="container mb-4"
+     style="
+        padding-top: 40%;
+        background-image: url('{{ url_for('static', filename='螢幕擷取畫面 2025-11-24 154806.jpg') }}');
+        background-size: cover;
+        background-position: center;
+     ">
+</div>
 <script>
   {% if load_labels %}
   new Chart(document.getElementById('loadChart'), {
