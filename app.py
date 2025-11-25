@@ -81,7 +81,7 @@ INDEX_HTML = """
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
 </head>
 <body class="bg-light" style="
-       background-image: url('{{ url_for('static', filename='bg.jpg') }}');
+       background-image: url('{{ url_for('static', filename='img_160854413174') }}');
        background-size: cover;
        background-position: center;
      ">>
