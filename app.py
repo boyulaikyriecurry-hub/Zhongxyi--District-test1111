@@ -80,7 +80,11 @@ INDEX_HTML = """
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
 </head>
-<body class="bg-light">
+<body class="bg-light" style="
+       background-image: url('{{ url_for('static', filename='bg.jpg') }}');
+       background-size: cover;
+       background-position: center;
+     ">>
 <div class="container py-4">
   <h3 class="mb-4">中西區：選里＋日期 → 顯示「一天負載」與「同日 PV 發電」</h3>
 
@@ -226,7 +230,7 @@ VIEW_HTML = """
 @app.route("/")
 def index():
     try:
-        villages = list_villages_from_load()
+        villages = list_villages_from_load()#後端去讀取有幾個里
     except Exception as e:
         villages = []
         print("讀取 villages 失敗:", e)
@@ -240,7 +244,7 @@ def index():
 
 @app.route("/view")
 def view():
-    village = request.args.get("village", "").strip()
+    village = request.args.get("village", "").strip()#去讀request傳回來的 viliage與date
     date_str = request.args.get("date", "").strip()
     if not village or not date_str:
         return redirect(url_for("index"))
@@ -248,6 +252,7 @@ def view():
     error_msg = None
 
     # 里別負載
+    #使用上面的函數去取出request要的日期天數並且抓出資料
     try:
         df_load = day_series_from_sheet(LOAD_XLSX, village, date_str, LOAD_COLS)
         load_labels = df_load["time"].tolist()
@@ -259,6 +264,7 @@ def view():
         load_rows   = []
 
     # 同日 PV
+    #使用上面的函數去取出request要的日期天數並且抓出資料
     try:
         df_pv = day_series_from_sheet(PV_XLSX, PV_SHEET, date_str, PV_COLS)
         pv_labels = df_pv["time"].tolist()
@@ -269,7 +275,7 @@ def view():
         error_msg = (error_msg + "；" if error_msg else "") + f"讀取 PV 失敗：{e}"
         pv_labels = pv_values = []
         pv_rows   = []
-
+    #把這些變數給前端程式html
     return render_template_string(
         VIEW_HTML,
         village=village, date=date_str,
