@@ -131,7 +131,7 @@ VIEW_HTML = """
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
 </head>
 <body class="bg-light">
-<div class="container py-4">
+<div class="container-fluid py-4">
   <div class="d-flex align-items-center mb-3">
     <a class="btn btn-outline-secondary me-3" href="{{ url_for('index') }}">← 返回</a>
     <h3 class="m-0">{{ village }} / {{ date }}</h3>
@@ -141,62 +141,122 @@ VIEW_HTML = """
     <div class="alert alert-danger">{{ error }}</div>
   {% endif %}
 
-  <div class="row g-4">
-    <!-- 里別負載 -->
-    <div class="col-12 col-lg-6">
-      <div class="card shadow-sm">
-        <div class="card-header fw-bold">里別 24 小時負載（MW）</div>
-        <div class="card-body">
-          {% if load_labels %}
-            <canvas id="loadChart"></canvas>
-          {% else %}
-            <div class="text-muted">查無資料</div>
-          {% endif %}
-        </div>
-        <div class="card-body pt-0">
-          {% if load_rows %}
-            <div class="table-responsive">
-              <table class="table table-sm table-striped align-middle">
-                <thead><tr><th>時間</th><th class="text-end">負載 (MW)</th></tr></thead>
-                <tbody>
-                {% for r in load_rows %}
-                  <tr><td>{{ r.time }}</td><td class="text-end">{{ "%.6f"|format(r.value) }}</td></tr>
-                {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% endif %}
+<div class="container-fluid py-4">
+  <div class="row g-3">
+
+    <!-- 圖1：里負載 -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">里別負載（MW）</div>
+        <div class="card-body p-0">
+          <canvas id="loadChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- 中西區 PV -->
-    <div class="col-12 col-lg-6">
-      <div class="card shadow-sm">
-        <div class="card-header fw-bold">里別同日 PV 發電（MW）</div>
-        <div class="card-body">
-          {% if pv_labels %}
-            <canvas id="pvChart"></canvas>
-          {% else %}
-            <div class="text-muted">查無資料</div>
-          {% endif %}
-        </div>
-        <div class="card-body pt-0">
-          {% if pv_rows %}
-            <div class="table-responsive">
-              <table class="table table-sm table-striped align-middle">
-                <thead><tr><th>時間</th><th class="text-end">PV (MW)</th></tr></thead>
-                <tbody>
-                {% for r in pv_rows %}
-                  <tr><td>{{ r.time }}</td><td class="text-end">{{ "%.6f"|format(r.value) }}</td></tr>
-                {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% endif %}
+    <!-- 圖2：里 PV -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">里別 PV（MW）</div>
+        <div class="card-body p-0">
+          <canvas id="pvChart"></canvas>
         </div>
       </div>
     </div>
+
+    <!-- 圖3：中西區負載 -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">中西區負載（MW）</div>
+        <div class="card-body p-0">
+          <canvas id="loadCityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 圖4：中西區 PV -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">中西區 PV（MW）</div>
+        <div class="card-body p-0">
+          <canvas id="pvCityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="container-fluid py-4">
+  <div class="row g-3">
+
+    <!-- 表1：里負載 -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">里別負載表格</div>
+        <div class="card-body">
+          <table class="table table-sm table-striped align-middle">
+            <thead><tr><th>時間</th><th class="text-end">MW</th></tr></thead>
+            <tbody>
+            {% for r in load_rows %}
+              <tr><td>{{ r.time }}</td><td class="text-end">{{ "%.6f"|format(r.value) }}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 表2：里PV -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">里別 PV 表格</div>
+        <div class="card-body" >
+          <table class="table table-sm table-striped align-middle">
+            <thead><tr><th>時間</th><th class="text-end">MW</th></tr></thead>
+            <tbody>
+            {% for r in pv_rows %}
+              <tr><td>{{ r.time }}</td><td class="text-end">{{ "%.6f"|format(r.value) }}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 表3：中西區負載 -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">中西區負載表格</div>
+        <div class="card-body" >
+          <table class="table table-sm table-striped align-middle">
+            <thead><tr><th>時間</th><th class="text-end">MW</th></tr></thead>
+            <tbody>
+            {% for r in load_city_rows %}
+              <tr><td>{{ r.time }}</td><td class="text-end">{{ "%.6f"|format(r.value) }}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 表4：中西區 PV -->
+    <div class="col-12 col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold text-center">中西區 PV 表格</div>
+        <div class="card-body" >
+          <table class="table table-sm table-striped align-middle">
+            <thead><tr><th>時間</th><th class="text-end">MW</th></tr></thead>
+            <tbody>
+            {% for r in pv_city_rows %}
+              <tr><td>{{ r.time }}</td><td class="text-end">{{ "%.6f"|format(r.value) }}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -222,6 +282,40 @@ VIEW_HTML = """
     options: {responsive: true, scales: {y: {beginAtZero: true}}}
   });
   {% endif %}
+  // 中西區負載圖
+{% if load_city_labels %}
+new Chart(document.getElementById('loadCityChart'), {
+  type: 'line',
+  data: {
+    labels: {{ load_city_labels|tojson }},
+    datasets: [{
+      label: '中西區 Load (MW)',
+      data: {{ load_city_values|tojson }},
+      borderColor: 'rgba(46, 204, 113, 1)',
+      fill: false,
+      tension: 0.2
+    }]
+  }
+});
+{% endif %}
+
+// 中西區 PV 圖
+{% if pv_city_labels %}
+new Chart(document.getElementById('pvCityChart'), {
+  type: 'line',
+  data: {
+    labels: {{ pv_city_labels|tojson }},
+    datasets: [{
+      label: '中西區 PV (MW)',
+      data: {{ pv_city_values|tojson }},
+      borderColor: 'rgba(46, 204, 113, 1)',
+      fill: false,
+      tension: 0.2
+    }]
+  }
+});
+{% endif %}
+
 </script>
 </body>
 </html>
@@ -275,14 +369,52 @@ def view():
         error_msg = (error_msg + "；" if error_msg else "") + f"讀取 PV 失敗：{e}"
         pv_labels = pv_values = []
         pv_rows   = []
+        # ③ 中西區負載
+    try:
+        df_load_city = day_series_from_sheet(LOAD_XLSX, "中西區", date_str, LOAD_COLS)
+        load_city_labels = df_load_city["time"].tolist()
+        load_city_values = df_load_city["value"].round(6).tolist()
+        load_city_rows   = df_load_city.to_dict(orient="records")   # ★新增
+    except Exception as e:
+        error_msg = (error_msg + "；" if error_msg else "") + f"讀取中西區負載失敗：{e}"
+        load_city_labels = load_city_values = []
+        load_city_rows   = []
+    # ④ 中西區 PV
+    try:
+        df_pv_city = day_series_from_sheet(PV_XLSX, "中西區", date_str, PV_COLS)
+        pv_city_labels = df_pv_city["time"].tolist()
+        pv_city_values = df_pv_city["value"].round(6).tolist()
+        pv_city_rows   = df_pv_city.to_dict(orient="records") 
+    except Exception as e:
+        error_msg = (error_msg + "；" if error_msg else "") + f"讀取中西區 PV 失敗：{e}"
+        pv_city_labels = pv_city_values = []
+        pv_city_rows   = []
     #把這些變數給前端程式html
     return render_template_string(
         VIEW_HTML,
-        village=village, date=date_str,
-        load_labels=load_labels, load_values=load_values, load_rows=load_rows,
-        pv_labels=pv_labels, pv_values=pv_values, pv_rows=pv_rows,
-        error=error_msg
+        village=village,
+        date=date_str,
+        error=error_msg,
+
+        # 里別負載、PV
+        load_labels=load_labels,
+        load_values=load_values,
+        load_rows=load_rows,
+
+        pv_labels=pv_labels,
+        pv_values=pv_values,
+        pv_rows=pv_rows,
+
+        # 中西區負載、PV（新增）
+        load_city_labels=load_city_labels,
+        load_city_values=load_city_values,
+        load_city_rows=load_city_rows,
+
+        pv_city_labels=pv_city_labels,
+        pv_city_values=pv_city_values,
+        pv_city_rows=pv_city_rows,
     )
+
 
 # for Render
 app = app
