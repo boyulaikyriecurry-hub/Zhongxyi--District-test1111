@@ -8,12 +8,12 @@ from flask import Flask, request, render_template_string, redirect, url_for
 DATA_DIR = Path(__file__).parent / "data"
 
 LOAD_XLSX = DATA_DIR / "load.xlsx"         # ← 你的「中西區_逐日逐時_LONG(MW).xlsx」可改名成這個，或改這行
-PV_XLSX   = DATA_DIR / "pv.xlsx"           # ← 你的「自己推的中西區pv發電量.xlsx」可改名成這個，或改這行
+PV_XLSX   = DATA_DIR / "中西區各里PV發電量.xlsx"           # ← 你的「自己推的中西區pv發電量.xlsx」可改名成這個，或改這行
 
 PV_SHEET = 0 
 # 欄位名稱（若你的欄位不同，改這裡即可）
 LOAD_COLS = {"datetime": "datetime", "value": "load"}        # 里負載檔的欄位對應
-PV_COLS   = {"datetime": "datetime", "value": "generator"}   # PV 檔的欄位對應
+PV_COLS   = {"datetime": "日期", "value": "PV發電量"}   # PV 檔的欄位對應
 # ========= 可調整區 =========
 
 app = Flask(__name__)
@@ -173,7 +173,7 @@ VIEW_HTML = """
     <!-- 中西區 PV -->
     <div class="col-12 col-lg-6">
       <div class="card shadow-sm">
-        <div class="card-header fw-bold">中西區同日 PV 發電（MW）</div>
+        <div class="card-header fw-bold">里別同日 PV 發電（MW）</div>
         <div class="card-body">
           {% if pv_labels %}
             <canvas id="pvChart"></canvas>
@@ -266,7 +266,7 @@ def view():
     # 同日 PV
     #使用上面的函數去取出request要的日期天數並且抓出資料
     try:
-        df_pv = day_series_from_sheet(PV_XLSX, PV_SHEET, date_str, PV_COLS)
+        df_pv = day_series_from_sheet(PV_XLSX, village, date_str, PV_COLS)
         pv_labels = df_pv["time"].tolist()
         pv_values = df_pv["value"].round(6).tolist()
         pv_rows   = df_pv.to_dict(orient="records")
