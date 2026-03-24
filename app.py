@@ -8,7 +8,7 @@ from flask import Flask, request, render_template_string, redirect, url_for, jso
 DATA_DIR = Path(__file__).parent / "data"
 
 DATA_XLSX = DATA_DIR / "放到網頁的data.xlsx"   # 只吃這一個檔案
-GEOJSON_PATH = DATA_DIR / "zhongxi_li.geojson"
+GEOJSON_PATH = DATA_DIR / "zhongxi_li_simple.geojson"
 # 里別 sheet 內欄位名稱
 DATA_COLS = {
     "datetime": "datetime",
