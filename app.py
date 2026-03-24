@@ -1,13 +1,14 @@
 from __future__ import annotations
 from pathlib import Path
 import pandas as pd
-from flask import Flask, request, render_template_string, redirect, url_for
+import json
+from flask import Flask, request, render_template_string, redirect, url_for, jsonify
 
 # ========= 可調整區 =========
 DATA_DIR = Path(__file__).parent / "data"
 
 DATA_XLSX = DATA_DIR / "放到網頁的data.xlsx"   # 只吃這一個檔案
-
+GEOJSON_PATH = DATA_DIR / "zhongxi_li.geojson"
 # 里別 sheet 內欄位名稱
 DATA_COLS = {
     "datetime": "datetime",
@@ -110,6 +111,77 @@ def read_capacity_info(village: str) -> tuple[float, float]:
         pv_capacity = pd.to_numeric(df[pv_cap_col], errors="coerce").fillna(0.0).iloc[0]
 
     return float(bess_capacity), float(pv_capacity)
+def build_capacity_map() -> dict:
+    """
+    從 Excel 每個里 sheet 第一列讀 bess_capacity_kwh 與 pv_capacity_kwh
+    回傳格式：
+    {
+        "永華里": {"bess_capacity_kwh": 1000, "pv_capacity_kwh": 300},
+        ...
+    }
+    """
+    _ensure_exists(DATA_XLSX)
+    xls = pd.ExcelFile(DATA_XLSX)
+
+    exclude_sheets = {
+        "Summary",
+        "ALL_LI_TOTAL",
+        "Installed_Capacity_By_LI",
+        "Installed_Capacity_Summary",
+    }
+
+    capacity_map = {}
+
+    for sheet in xls.sheet_names:
+        if sheet in exclude_sheets:
+            continue
+
+        df = pd.read_excel(DATA_XLSX, sheet_name=sheet)
+
+        bess = 0.0
+        pv = 0.0
+
+        if "bess_capacity_kwh" in df.columns and not df.empty:
+            bess = pd.to_numeric(df["bess_capacity_kwh"], errors="coerce").fillna(0).iloc[0]
+
+        if "pv_capacity_kwh" in df.columns and not df.empty:
+            pv = pd.to_numeric(df["pv_capacity_kwh"], errors="coerce").fillna(0).iloc[0]
+
+        capacity_map[str(sheet).strip()] = {
+            "bess_capacity_kwh": float(bess),
+            "pv_capacity_kwh": float(pv),
+        }
+
+    return capacity_map
+
+
+def build_geojson_with_capacity() -> dict:
+    """
+    把 geojson 與 Excel 容量資料合併
+    geojson 用 VILLNAME 對應 Excel 的 sheet 名稱
+    """
+    _ensure_exists(GEOJSON_PATH)
+
+    with open(GEOJSON_PATH, "r", encoding="utf-8") as f:
+        geo = json.load(f)
+
+    capacity_map = build_capacity_map()
+
+    for feature in geo.get("features", []):
+        props = feature.setdefault("properties", {})
+
+        village = str(props.get("VILLNAME", "")).strip()
+
+        cap = capacity_map.get(village, {
+            "bess_capacity_kwh": 0.0,
+            "pv_capacity_kwh": 0.0,
+        })
+
+        props["village"] = village
+        props["bess_capacity_kwh"] = cap["bess_capacity_kwh"]
+        props["pv_capacity_kwh"] = cap["pv_capacity_kwh"]
+
+    return geo
 
 INDEX_HTML = """
 <!doctype html>
@@ -118,15 +190,21 @@ INDEX_HTML = """
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>中西區里別關鍵負載查詢</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
 </head>
+
 <body class="bg-light" style="
        background-image: url('{{ url_for('static', filename='img_160854413174.jpg') }}');
        background-size: cover;
        background-position: center;
      ">
+
 <div class="container py-4">
-  <h3 class="mb-4">中西區：選里＋日期</h3>
+  <h3 class="mb-3">中西區關鍵負載查詢</h3>
+  <p class="text-muted">選擇里別與日期，查看該里之負載、關鍵負載、PV 與 SOC 資料。</p>
 
   <form class="row gy-2 gx-3 align-items-end mb-4" method="get" action="{{ url_for('view') }}">
     <div class="col-auto">
@@ -138,10 +216,14 @@ INDEX_HTML = """
         {% endfor %}
       </select>
     </div>
+
     <div class="col-auto">
       <label class="form-label">日期</label>
       <input type="date" class="form-control" name="date" required>
     </div>
+
+    <input type="hidden" name="mode" value="chart">
+
     <div class="col-auto">
       <button class="btn btn-primary">查詢</button>
     </div>
@@ -151,11 +233,88 @@ INDEX_HTML = """
 </div>
 
 <div class="container py-4">
-  <img src="{{ url_for('static', filename='中西區調整後地圖-簡.jpg') }}"
-       alt="map"
-       height="1000"
-       class="img-fluid mb-4">
+  <div id="map" style="height: 700px; border-radius: 12px;"></div>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  const map = L.map('map').setView([22.997, 120.196], 14);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // 顏色函數（依 BESS 容量）
+  function getColor(bess) {
+    if (bess > 2500) return '#7f0000';
+    if (bess > 2000) return '#b30000';
+    if (bess > 1500) return '#d7301f';
+    if (bess > 1000) return '#ef6548';
+    if (bess > 500)  return '#fc8d59';
+    return '#fdd49e';
+  }
+
+  fetch("{{ url_for('map_data') }}")
+    .then(res => res.json())
+    .then(data => {
+
+      const geoLayer = L.geoJSON(data, {
+
+        style: function(feature) {
+          const bess = feature.properties.bess_capacity_kwh || 0;
+
+          return {
+            color: '#333',
+            weight: 1,
+            fillColor: getColor(bess),
+            fillOpacity: 0.7
+          };
+        },
+
+        onEachFeature: function(feature, layer) {
+          const p = feature.properties;
+
+          const village = p.village || '未知';
+          const bess = p.bess_capacity_kwh || 0;
+          const pv = p.pv_capacity_kwh || 0;
+
+          // popup
+          layer.bindPopup(`
+            <b>${village}</b><br>
+            BESS容量: ${bess.toFixed(1)} kWh<br>
+            PV容量: ${pv.toFixed(1)} kWh
+          `);
+
+          // 點擊跳轉
+          layer.on('click', function() {
+
+            const dateInput = document.querySelector('input[name="date"]');
+            const dateVal = dateInput ? dateInput.value : '';
+
+            if (!dateVal) {
+              alert('請先選擇日期');
+              return;
+            }
+
+            window.location.href =
+              "{{ url_for('view') }}" +
+              "?village=" + encodeURIComponent(village) +
+              "&date=" + encodeURIComponent(dateVal) +
+              "&mode=chart";
+          });
+        }
+
+      }).addTo(map);
+
+      map.fitBounds(geoLayer.getBounds());
+    })
+
+    .catch(err => {
+      console.error("地圖載入失敗:", err);
+    });
+
+</script>
 
 </body>
 </html>
@@ -376,8 +535,6 @@ def index():
         villages=villages,
         data_path=str(DATA_XLSX),
     )
-
-
 @app.route("/view")
 def view():
     village = request.args.get("village", "").strip()
@@ -426,10 +583,17 @@ def view():
         soc_values=soc_values,
         detail_rows=detail_rows,
     )
-
+@app.route("/map-data")
+def map_data():
+    try:
+        geo = build_geojson_with_capacity()
+        return jsonify(geo)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 # for Render
 app = app
 
 if __name__ == "__main__":
     # 本機執行
     app.run(debug=True)
+print("map-data route loaded")
