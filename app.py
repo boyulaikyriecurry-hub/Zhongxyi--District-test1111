@@ -243,6 +243,7 @@ VIEW_HTML = """
             <thead>
               <tr>
                 <th>時間</th>
+                <th class="text-end">負載 (kWh)</th>
                 <th class="text-end">關鍵負載 (kWh)</th>
                 <th class="text-end">PV (kWh)</th>
                 <th class="text-end">SOC (kWh)</th>
@@ -252,6 +253,7 @@ VIEW_HTML = """
             {% for r in detail_rows %}
               <tr>
                 <td>{{ r.time }}</td>
+                <td class="text-end">{{ "%.6f"|format(r.load_kWh) }}</td>
                 <td class="text-end">{{ "%.6f"|format(r.critical_load_kWh) }}</td>
                 <td class="text-end">{{ "%.6f"|format(r.pv_kWh) }}</td>
                 <td class="text-end">{{ "%.6f"|format(r.SOC_kWh) }}</td>
