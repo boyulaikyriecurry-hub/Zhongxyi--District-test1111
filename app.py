@@ -22,7 +22,7 @@ DATA_COLS = {
 # ========= 可調整區 =========
 
 app = Flask(__name__)
-
+MAP_CACHE = None
 def _ensure_exists(p: Path):
     if not p.exists():
         raise FileNotFoundError(f"找不到資料檔：{p}")
@@ -585,22 +585,13 @@ def view():
     )
 @app.route("/map-data")
 def map_data():
-    try:
-        print("DATA_XLSX =", DATA_XLSX)
-        print("GEOJSON_PATH =", GEOJSON_PATH)
-        print("xlsx exists =", DATA_XLSX.exists())
-        print("geojson exists =", GEOJSON_PATH.exists())
+    global MAP_CACHE
 
-        geo = build_geojson_with_capacity()
-        return jsonify(geo)
-    except Exception as e:
-        return f"""
-        /map-data error: {repr(e)}<br>
-        DATA_XLSX = {DATA_XLSX}<br>
-        GEOJSON_PATH = {GEOJSON_PATH}<br>
-        xlsx exists = {DATA_XLSX.exists()}<br>
-        geojson exists = {GEOJSON_PATH.exists()}<br>
-        """, 500
+    if MAP_CACHE is None:
+        print("building map cache...")
+        MAP_CACHE = build_geojson_with_capacity()
+
+    return jsonify(MAP_CACHE)
 # for Render
 app = app
 
