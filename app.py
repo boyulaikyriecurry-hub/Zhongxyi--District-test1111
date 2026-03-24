@@ -586,14 +586,24 @@ def view():
 @app.route("/map-data")
 def map_data():
     try:
+        print("DATA_XLSX =", DATA_XLSX)
+        print("GEOJSON_PATH =", GEOJSON_PATH)
+        print("xlsx exists =", DATA_XLSX.exists())
+        print("geojson exists =", GEOJSON_PATH.exists())
+
         geo = build_geojson_with_capacity()
         return jsonify(geo)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return f"""
+        /map-data error: {repr(e)}<br>
+        DATA_XLSX = {DATA_XLSX}<br>
+        GEOJSON_PATH = {GEOJSON_PATH}<br>
+        xlsx exists = {DATA_XLSX.exists()}<br>
+        geojson exists = {GEOJSON_PATH.exists()}<br>
+        """, 500
 # for Render
 app = app
 
 if __name__ == "__main__":
     # 本機執行
     app.run(debug=True)
-print("map-data route loaded")
