@@ -123,11 +123,7 @@ INDEX_HTML = """
 
 </head>
 
-<body class="bg-light" style="
-       background-image: url('{{ url_for('static', filename='img_160854413174.jpg') }}');
-       background-size: cover;
-       background-position: center;
-     ">
+<body class="bg-light" 
 
 <div class="container py-4">
   <h3 class="mb-3">中西區關鍵負載查詢</h3>
@@ -159,8 +155,8 @@ INDEX_HTML = """
   <p class="text-muted">資料來源：<code>{{ data_path }}</code></p>
 </div>
 
-<div class="container py-4">
-  <div id="map" style="height: 700px; border-radius: 12px;"></div>
+<div class="container-fluid p-0">
+  <div id="map" style="height: 90vh;"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
