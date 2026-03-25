@@ -2,13 +2,13 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 import json
-from flask import Flask, request, render_template_string, redirect, url_for, jsonify
+from flask import Flask, request, render_template_string, redirect, url_for, send_from_directory
 
 # ========= 可調整區 =========
 DATA_DIR = Path(__file__).parent / "data"
 
 DATA_XLSX = DATA_DIR / "放到網頁的data.xlsx"   # 只吃這一個檔案
-GEOJSON_PATH = DATA_DIR / "zhongxi_li_simple.geojson"
+MERGED_GEOJSON_PATH = DATA_DIR / "zhongxi_with_capacity.geojson"
 # 里別 sheet 內欄位名稱
 DATA_COLS = {
     "datetime": "datetime",
@@ -22,7 +22,6 @@ DATA_COLS = {
 # ========= 可調整區 =========
 
 app = Flask(__name__)
-MAP_CACHE = None
 def _ensure_exists(p: Path):
     if not p.exists():
         raise FileNotFoundError(f"找不到資料檔：{p}")
@@ -111,78 +110,6 @@ def read_capacity_info(village: str) -> tuple[float, float]:
         pv_capacity = pd.to_numeric(df[pv_cap_col], errors="coerce").fillna(0.0).iloc[0]
 
     return float(bess_capacity), float(pv_capacity)
-def build_capacity_map() -> dict:
-    """
-    從 Excel 每個里 sheet 第一列讀 bess_capacity_kwh 與 pv_capacity_kwh
-    回傳格式：
-    {
-        "永華里": {"bess_capacity_kwh": 1000, "pv_capacity_kwh": 300},
-        ...
-    }
-    """
-    _ensure_exists(DATA_XLSX)
-    xls = pd.ExcelFile(DATA_XLSX)
-
-    exclude_sheets = {
-        "Summary",
-        "ALL_LI_TOTAL",
-        "Installed_Capacity_By_LI",
-        "Installed_Capacity_Summary",
-    }
-
-    capacity_map = {}
-
-    for sheet in xls.sheet_names:
-        if sheet in exclude_sheets:
-            continue
-
-        df = pd.read_excel(DATA_XLSX, sheet_name=sheet)
-
-        bess = 0.0
-        pv = 0.0
-
-        if "bess_capacity_kwh" in df.columns and not df.empty:
-            bess = pd.to_numeric(df["bess_capacity_kwh"], errors="coerce").fillna(0).iloc[0]
-
-        if "pv_capacity_kwh" in df.columns and not df.empty:
-            pv = pd.to_numeric(df["pv_capacity_kwh"], errors="coerce").fillna(0).iloc[0]
-
-        capacity_map[str(sheet).strip()] = {
-            "bess_capacity_kwh": float(bess),
-            "pv_capacity_kwh": float(pv),
-        }
-
-    return capacity_map
-
-
-def build_geojson_with_capacity() -> dict:
-    """
-    把 geojson 與 Excel 容量資料合併
-    geojson 用 VILLNAME 對應 Excel 的 sheet 名稱
-    """
-    _ensure_exists(GEOJSON_PATH)
-
-    with open(GEOJSON_PATH, "r", encoding="utf-8") as f:
-        geo = json.load(f)
-
-    capacity_map = build_capacity_map()
-
-    for feature in geo.get("features", []):
-        props = feature.setdefault("properties", {})
-
-        village = str(props.get("VILLNAME", "")).strip()
-
-        cap = capacity_map.get(village, {
-            "bess_capacity_kwh": 0.0,
-            "pv_capacity_kwh": 0.0,
-        })
-
-        props["village"] = village
-        props["bess_capacity_kwh"] = cap["bess_capacity_kwh"]
-        props["pv_capacity_kwh"] = cap["pv_capacity_kwh"]
-
-    return geo
-
 INDEX_HTML = """
 <!doctype html>
 <html lang="zh-Hant">
@@ -585,13 +512,8 @@ def view():
     )
 @app.route("/map-data")
 def map_data():
-    global MAP_CACHE
-
-    if MAP_CACHE is None:
-        print("building map cache...")
-        MAP_CACHE = build_geojson_with_capacity()
-
-    return jsonify(MAP_CACHE)
+    _ensure_exists(MERGED_GEOJSON_PATH)
+    return send_from_directory(DATA_DIR, "zhongxi_with_capacity.geojson", mimetype="application/geo+json")
 # for Render
 app = app
 
