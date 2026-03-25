@@ -1,0 +1,82 @@
+{
+  "五條港里": {
+    "bess_capacity_kwh": 1210.0,
+    "pv_capacity_kwh": 303.0
+  },
+  "光賢里": {
+    "bess_capacity_kwh": 1050.0,
+    "pv_capacity_kwh": 1872.0
+  },
+  "兌悅里": {
+    "bess_capacity_kwh": 1460.0,
+    "pv_capacity_kwh": 326.0
+  },
+  "南廠里": {
+    "bess_capacity_kwh": 1730.0,
+    "pv_capacity_kwh": 568.0
+  },
+  "南美里": {
+    "bess_capacity_kwh": 1250.0,
+    "pv_capacity_kwh": 398.0
+  },
+  "南門里": {
+    "bess_capacity_kwh": 1060.0,
+    "pv_capacity_kwh": 511.0
+  },
+  "城隍里": {
+    "bess_capacity_kwh": 1740.0,
+    "pv_capacity_kwh": 845.0
+  },
+  "大涼里": {
+    "bess_capacity_kwh": 1200.0,
+    "pv_capacity_kwh": 1466.0
+  },
+  "小西門里": {
+    "bess_capacity_kwh": 1180.0,
+    "pv_capacity_kwh": 2249.0
+  },
+  "府前里": {
+    "bess_capacity_kwh": 1260.0,
+    "pv_capacity_kwh": 422.0
+  },
+  "永華里": {
+    "bess_capacity_kwh": 840.0,
+    "pv_capacity_kwh": 239.0
+  },
+  "法華里": {
+    "bess_capacity_kwh": 570.0,
+    "pv_capacity_kwh": 472.0
+  },
+  "淺草里": {
+    "bess_capacity_kwh": 1680.0,
+    "pv_capacity_kwh": 710.0
+  },
+  "藥王里": {
+    "bess_capacity_kwh": 3720.0,
+    "pv_capacity_kwh": 464.0
+  },
+  "西和里": {
+    "bess_capacity_kwh": 2620.0,
+    "pv_capacity_kwh": 1145.0
+  },
+  "西湖里": {
+    "bess_capacity_kwh": 2100.0,
+    "pv_capacity_kwh": 4500.0
+  },
+  "西賢里": {
+    "bess_capacity_kwh": 1750.0,
+    "pv_capacity_kwh": 1772.0
+  },
+  "赤崁里": {
+    "bess_capacity_kwh": 1880.0,
+    "pv_capacity_kwh": 714.0
+  },
+  "郡王里": {
+    "bess_capacity_kwh": 1010.0,
+    "pv_capacity_kwh": 438.0
+  },
+  "開山里": {
+    "bess_capacity_kwh": 1550.0,
+    "pv_capacity_kwh": 172.0
+  }
+}
