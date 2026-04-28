@@ -113,13 +113,13 @@ def read_capacity_info(village: str) -> tuple[float, float]:
 INDEX_HTML = """
 <!doctype html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<head> <!-- 網頁設定 -->
+  <meta charset="utf-8"/>  <!-- 設定編碼 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"/> <!-- 排版可適應手機的版面 -->
   <title>中西區里別關鍵負載查詢</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><!-- 提供表單 按鈕 選單 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/><!-- 地圖樣式 -->
 
 </head>
 
@@ -129,7 +129,7 @@ INDEX_HTML = """
   <h3 class="mb-3">中西區關鍵負載查詢</h3>
   <p class="text-muted">選擇里別與日期，查看該里之負載、關鍵負載、PV 與 SOC 資料。</p>
 
-  <form class="row gy-2 gx-3 align-items-end mb-4" method="get" action="{{ url_for('view') }}">
+  <form class="row gy-2 gx-3 align-items-end mb-4" method="get" action="{{ url_for('view') }}">  <!-- 選里的選單 -->
     <div class="col-auto">
       <label class="form-label">里名</label>
       <select class="form-select" name="village" required>
@@ -142,7 +142,7 @@ INDEX_HTML = """
 
     <div class="col-auto">
       <label class="form-label">日期</label>
-      <input type="date" class="form-control" name="date" required>
+      <input type="date" class="form-control" name="date" required>   <!-- 選日期的選單 -->
     </div>
 
     <input type="hidden" name="mode" value="chart">
@@ -155,18 +155,18 @@ INDEX_HTML = """
   <p class="text-muted">資料來源：<code>{{ data_path }}</code></p>
 </div>
 
-<div class="container-fluid p-0">
+<div class="container-fluid p-0">            <!-- 地圖的大小排版 -->
   <div id="map" style="height: 90vh;"></div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>  <!-- 地圖套件 -->
 
 <script>
-  const map = L.map('map').setView([22.997, 120.196], 14);
+  const map = L.map('map').setView([22.997, 120.196], 14); <!-- 設定初始的地圖視角 -->
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  }).addTo(map);                                          <!-- 建立地圖道路,城市,地形 -->
 
   // 顏色函數（依 BESS 容量）
   function getColor(bess) {
@@ -187,7 +187,7 @@ INDEX_HTML = """
         style: function(feature) {
           const bess = feature.properties.bess_capacity_kwh || 0;
 
-          return {
+          return {                                             <!-- 顏色設定 -->
             color: '#333',
             weight: 1,
             fillColor: getColor(bess),
@@ -195,14 +195,14 @@ INDEX_HTML = """
           };
         },
 
-        onEachFeature: function(feature, layer) {
+        onEachFeature: function(feature, layer) {             <!-- 取各里資料 -->
           const p = feature.properties;
 
           const village = p.village || '未知';
           const bess = p.bess_capacity_kwh || 0;
           const pv = p.pv_capacity_kwh || 0;
 
-          // popup
+          // popup                                            <!-- 滑鼠點擊顯示 -->
           layer.bindPopup(`
             <b>${village}</b><br>
             BESS容量: ${bess.toFixed(1)} kWh<br>
@@ -212,7 +212,7 @@ INDEX_HTML = """
           // 點擊跳轉
           layer.on('click', function() {
 
-            const dateInput = document.querySelector('input[name="date"]');
+            const dateInput = document.querySelector('input[name="date"]');     <!-- 取日期 -->
             const dateVal = dateInput ? dateInput.value : '';
 
             if (!dateVal) {
@@ -445,7 +445,7 @@ new Chart(document.getElementById('socChart'), {
 </html>
 """
 
-@app.route("/")
+@app.route("/")                      #剛進入網頁進行的動作
 def index():
     try:
         villages = list_villages()   # 改成新的函式
@@ -458,7 +458,7 @@ def index():
         villages=villages,
         data_path=str(DATA_XLSX),
     )
-@app.route("/view")
+@app.route("/view")                         #顯示圖表或表格
 def view():
     village = request.args.get("village", "").strip()
     date_str = request.args.get("date", "").strip()
