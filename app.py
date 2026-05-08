@@ -185,13 +185,13 @@ INDEX_HTML = """
       const geoLayer = L.geoJSON(data, {
 
         style: function(feature) {
-          const bess = feature.properties.bess_capacity_kwh || 0;
+          const pv = feature.properties.pv_capacity_kwh || 0;
 
           return {                                             <!-- 顏色設定 -->
-            color: '#333',
-            weight: 1,
-            fillColor: getColor(bess),
-            fillOpacity: 0.7
+            color: getColor(pv),
+            weight: 3,
+            fillColor: getColor(pv),
+            fillOpacity: 0.4
           };
         },
 
